@@ -62,7 +62,7 @@ namespace OsuTopPlaysGUI.API {
             req.Headers.Add("Authorization", $"Bearer {accessToken}");
             req.Headers.Add("Accept", "application/json");
 
-            var resp = client.SendAsync(req).Result;
+            var resp = client.Send(req);
             if (resp.IsSuccessStatusCode)
             {
                 string str = resp.Content.ReadAsStringAsync().Result;
@@ -78,7 +78,7 @@ namespace OsuTopPlaysGUI.API {
             req.Headers.Add("Authorization", $"Bearer {accessToken}");
             req.Headers.Add("Accept", "application/json");
 
-            var resp = client.SendAsync(req).Result;
+            var resp = client.Send(req);
             if (resp.IsSuccessStatusCode)
             {
                 string str = resp.Content.ReadAsStringAsync().Result;

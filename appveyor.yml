@@ -1,0 +1,25 @@
+image: Visual Studio 2022
+version: 1.0.{build}
+pull_requests:
+  do_not_increment_build_number: true
+skip_tags: true
+clone_depth: 1
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: 1.0.0
+  file_version: 1.0.0
+build_script:
+- cmd: >-
+    dotnet build ./OsuTopPlaysGUI/OsuTopPlaysGUI.csproj -c Release
+test: off
+artifacts:
+- path: ./OsuTopPlaysGUI/bin/Release/net6.0-windows
+  name: OsuTopPlaysGUI
+deploy:
+- provider: GitHub
+  tag: 1.0.0
+  auth_token:
+    secure: EEbZ2OGaIPcjhGpQGzfE80TbrG14UiTPGNnQjMIKD5wzrYPQ4Kyhb3qLzMNahL1I
+  repository: PercyDan54/OsuTopPlaysGUI
+  artifact: OsuTopPlaysGUI
