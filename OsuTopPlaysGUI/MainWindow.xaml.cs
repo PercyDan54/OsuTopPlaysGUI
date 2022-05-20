@@ -108,6 +108,9 @@ namespace OsuTopPlaysGUI
                         bpm *= 0.75;
                     }
 
+                    score.Beatmap.Length = length;
+                    score.Beatmap.BPM = bpm;
+
                     beatmapLengths.Add(length);
                     int num = i + 1;
                     if (length > longestMap.Item2)
@@ -175,6 +178,7 @@ namespace OsuTopPlaysGUI
 
                 UserAvatar.Source = new BitmapImage(new Uri(user.AvatarUrl));
                 Table.ItemsSource = bp;
+                BpTextBox.Text = string.Empty;
 
                 var userStatistics = user.Statistics;
                 var playTime = TimeSpan.FromSeconds(userStatistics.PlayTime ?? 0);
@@ -263,15 +267,17 @@ pc/tth: {userStatistics.TotalHits / (double)userStatistics.PlayCount:F2}
                     double pp1 = modCombinationPp[mod];
                     Write($"{mod}: {pp1:F}pp ({pp1 / ppSum:P}) ");
                 }
+                Config.WriteJson("config.json", Config);
             }
-            catch
+            catch (Exception ex)
             {
+                BpTextBox.Text = ex.Message;
             }
         }
 
-        public void Write(string str) => BpTextBox.Text += str;
-        public void WriteLine(string str) => BpTextBox.Text += str + NewLine;
-        public void WriteLine() => WriteLine(string.Empty);
+        private void Write(string str) => BpTextBox.Text += str;
+        private void WriteLine(string str) => BpTextBox.Text += str + NewLine;
+        private void WriteLine() => WriteLine(string.Empty);
 
         private static string lookupUser(int userId)
         {
@@ -280,49 +286,6 @@ pc/tth: {userStatistics.TotalHits / (double)userStatistics.PlayCount:F2}
 
             Config.UsernameCache.Add(userId, name = Client.GetUser(userId.ToString()).Username);
             return name;
-        }
-
-        public class BpInfo
-        {
-            public BpInfo(Score score, int position)
-            {
-                Position = position;
-                this.score = score;
-            }
-
-            private Score score;
-
-            public int Position { get; set; }
-
-            public double Pp => score.PP ?? 0;
-
-            public double PpWeighted => Math.Round(score.Weight?.PP ?? 0, 2);
-
-            public string Accuracy => score.Accuracy.ToString("P2");
-
-            public string MaxCombo => score.MaxCombo + "x";
-
-            public string Mods => score.Mods;
-
-            public bool Perfect
-            {
-                get => score.Perfect;
-                set => throw new InvalidOperationException();
-            }
-
-            public bool HasReplay
-            {
-                get => score.HasReplay;
-                set => throw new InvalidOperationException();
-            }
-
-            public string Beatmap => score.Beatmap.ToString();
-
-            public string StarRating => score.Beatmap.StarRating.ToString("F2") + "*";
-
-            public string Rank => score.Rank.ToString();
-
-            public string Detail => score.ToString();
         }
     }
 }

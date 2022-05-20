@@ -72,6 +72,8 @@
                     <DataGridCheckBoxColumn Header="FC" Binding="{Binding Perfect}" ElementStyle="{DynamicResource MaterialDesignDataGridCheckBoxColumnStyle}"/>
                     <DataGridTextColumn Header="Mods" Binding="{Binding Mods}"/>
                     <DataGridTextColumn Header="Star Rating" Binding="{Binding StarRating}"/>
+                    <DataGridTextColumn Header="BPM" Binding="{Binding Bpm}"/>
+                    <DataGridTextColumn Header="Length" Binding="{Binding Length}"/>
                     <DataGridTextColumn Header="Beatmap" Binding="{Binding Beatmap}"/>
                     <DataGridCheckBoxColumn Header="Replay Available" Binding="{Binding HasReplay}" ElementStyle="{DynamicResource MaterialDesignDataGridCheckBoxColumnStyle}"/>
                 </DataGrid.Columns>
