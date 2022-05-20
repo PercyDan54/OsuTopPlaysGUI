@@ -32,11 +32,10 @@ namespace OsuTopPlaysGUI.API {
             }
             accessToken = token.AccessToken;
             Config.WriteJson("config.json", MainWindow.Config);
-
         }
 
-        public static AccessTokenResponse GetAccessToken() {
-            
+        public static AccessTokenResponse GetAccessToken()
+        {
             var data = new Dictionary<string, string> {
                 // From https://github.com/ppy/osu/blob/master/osu.Game/Online/ProductionEndpointConfiguration.cs
                 { "client_id", "5" },
@@ -44,8 +43,9 @@ namespace OsuTopPlaysGUI.API {
                 { "grant_type", "client_credentials" },
                 { "scope", "public" }
             };
-            var req = new FormUrlEncodedContent(data);
-            var resp = client.PostAsync("https://osu.ppy.sh/oauth/token", req).Result;
+            var req = new HttpRequestMessage(HttpMethod.Post, "https://osu.ppy.sh/oauth/token");
+            req.Content = new FormUrlEncodedContent(data);
+            var resp = client.Send(req);
 
             if (resp.IsSuccessStatusCode) {
                 string? str = resp.Content.ReadAsStringAsync().Result;

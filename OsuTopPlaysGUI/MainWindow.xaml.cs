@@ -34,12 +34,12 @@ namespace OsuTopPlaysGUI
             else if (mania.IsChecked == true)
                 mode = "mania";
 
-            var user = Client.GetUser(UsernameTextbox.Text);
-            user.PlayMode = mode;
-
-            TitleTextBlock.Text = user.ToString();
             try
             {
+                var user = Client.GetUser(UsernameTextbox.Text);
+                user.PlayMode = mode;
+
+                TitleTextBlock.Text = user.ToString();
                 var scores = Client.GetUserBestScores(user.Id, mode);
                 var bp = new List<BpInfo>();
                 var modPp = new Dictionary<string, double>
@@ -276,7 +276,7 @@ pc/tth: {userStatistics.TotalHits / (double)userStatistics.PlayCount:F2}
         }
 
         private void Write(string str) => BpTextBox.Text += str;
-        private void WriteLine(string str) => BpTextBox.Text += str + NewLine;
+        private void WriteLine(string str) => Write(str + NewLine);
         private void WriteLine() => WriteLine(string.Empty);
 
         private static string lookupUser(int userId)
