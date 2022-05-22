@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using OsuTopPlaysGUI.API;
@@ -23,6 +24,7 @@ namespace OsuTopPlaysGUI
 
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
+            ProgressBar.Visibility = Visibility.Visible;
             string mode = "osu";
 
             if (osu.IsChecked == true)
@@ -34,29 +36,37 @@ namespace OsuTopPlaysGUI
             else if (mania.IsChecked == true)
                 mode = "mania";
 
+            string user = UsernameTextbox.Text;
+            BpTextBox.Text = string.Empty;
+            Button.IsEnabled = false;
+            new Thread(_ => updateBp(user, mode)).Start();
+        }
+
+        private void updateBp(string username, string mode)
+        {
             try
             {
-                var user = Client.GetUser(UsernameTextbox.Text);
+                var user = Client.GetUser(username);
                 user.PlayMode = mode;
 
-                TitleTextBlock.Text = user.ToString();
+                TitleTextBlock.Dispatcher.BeginInvoke(() => TitleTextBlock.Text = user.ToString());
                 var scores = Client.GetUserBestScores(user.Id, mode);
                 var bp = new List<BpInfo>();
                 var modPp = new Dictionary<string, double>
                 {
-                    {"None", 0}
+                    { "None", 0 }
                 };
                 var modCombinationPp = new Dictionary<string, double>
                 {
-                    {"None", 0}
+                    { "None", 0 }
                 };
                 var mostUsedModCombinations = new Dictionary<string, int>
                 {
-                    {"None", 0}
+                    { "None", 0 }
                 };
                 var mostUsedMods = new Dictionary<string, int>
                 {
-                    {"None", 0}
+                    { "None", 0 }
                 };
                 var mapperCount = new Dictionary<int, int>();
                 var mapperPp = new Dictionary<int, double>();
@@ -75,7 +85,11 @@ namespace OsuTopPlaysGUI
                 int sotarks = 0;
                 var rankCounts = Enum.GetValues(typeof(ScoreRank)).Cast<ScoreRank>().ToDictionary(rank => rank, rank => 0);
 
+                if (scores == null)
+                    return;
+
                 var count = scores.Length;
+
                 for (int i = 0; i < count; i++)
                 {
                     var score = scores[i];
@@ -102,6 +116,7 @@ namespace OsuTopPlaysGUI
                         length /= 1.5;
                         bpm *= 1.5;
                     }
+
                     if (score.Mods.Contains("HT"))
                     {
                         length /= 0.75;
@@ -173,17 +188,17 @@ namespace OsuTopPlaysGUI
                     {
                         weekPp += scorePpWeighted;
                     }
-                    bp.Add(new BpInfo(score, i + 1));
+
+                    bp.Add(new BpInfo(score, num));
                 }
 
-                UserAvatar.Source = new BitmapImage(new Uri(user.AvatarUrl));
-                Table.ItemsSource = bp;
-                BpTextBox.Text = string.Empty;
+                UserAvatar.Dispatcher.BeginInvoke(() => UserAvatar.Source = new BitmapImage(new Uri(user.AvatarUrl)));
+                Table.Dispatcher.BeginInvoke(() => Table.ItemsSource = bp);
 
                 var userStatistics = user.Statistics;
                 var playTime = TimeSpan.FromSeconds(userStatistics.PlayTime ?? 0);
                 string playTimeText = $"{playTime.TotalDays:N0}d {playTime.Hours}h {playTime.Minutes}m";
-                UserInfoTextBox.Text = $@"{user}
+                UserInfoTextBox.Dispatcher.BeginInvoke(() => UserInfoTextBox.Text = $@"{user}
 游戏时间: {playTimeText}
 准确率: {userStatistics.Accuracy:F2}%
 Ranked 谱面总分: {userStatistics.RankedScore:N0}
@@ -192,7 +207,7 @@ Ranked 谱面总分: {userStatistics.RankedScore:N0}
 tth: {userStatistics.TotalHits:N0}
 pc/tth: {userStatistics.TotalHits / (double)userStatistics.PlayCount:F2}
 最大连击: {userStatistics.MaxCombo:N0}
-回放被观看次数: {userStatistics.ReplaysWatched}";
+回放被观看次数: {userStatistics.ReplaysWatched}");
 
                 foreach (var rank in rankCounts.Keys)
                 {
@@ -267,15 +282,21 @@ pc/tth: {userStatistics.TotalHits / (double)userStatistics.PlayCount:F2}
                     double pp1 = modCombinationPp[mod];
                     Write($"{mod}: {pp1:F}pp ({pp1 / ppSum:P}) ");
                 }
+
                 Config.WriteJson("config.json", Config);
             }
             catch (Exception ex)
             {
-                BpTextBox.Text = ex.Message;
+                BpTextBox.Dispatcher.BeginInvoke(() => BpTextBox.Text = $"ERROR: {ex}");
+            }
+            finally
+            {
+                ProgressBar.Dispatcher.BeginInvoke(() => ProgressBar.Visibility = Visibility.Hidden);
+                Button.Dispatcher.BeginInvoke(() => Button.IsEnabled = true);
             }
         }
 
-        private void Write(string str) => BpTextBox.Text += str;
+        private void Write(string str) => BpTextBox.Dispatcher.BeginInvoke(() => BpTextBox.Text += str);
         private void WriteLine(string str) => Write(str + NewLine);
         private void WriteLine() => WriteLine(string.Empty);
 
@@ -284,7 +305,7 @@ pc/tth: {userStatistics.TotalHits / (double)userStatistics.PlayCount:F2}
             if (Config.UsernameCache.TryGetValue(userId, out string name))
                 return name;
 
-            Config.UsernameCache.Add(userId, name = Client.GetUser(userId.ToString()).Username);
+            Config.UsernameCache.Add(userId, name = Client.GetUser(userId.ToString())?.Username ?? "{Unknown User}");
             return name;
         }
     }

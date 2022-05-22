@@ -13,7 +13,7 @@
     <Grid>
         <StackPanel VerticalAlignment="Top" Height="768">
             <DockPanel Height="50" LastChildFill="False">
-                <materialDesign:ColorZone materialDesign:ShadowAssist.ShadowDepth="Depth2" Mode="PrimaryMid" Width="1024" DockPanel.Dock="Top" Height="50">
+                <materialDesign:ColorZone materialDesign:ShadowAssist.ShadowDepth="Depth2" Mode="PrimaryMid" Width="1024" DockPanel.Dock="Top" Height="45">
                     <TextBlock
                     Name="TitleTextBlock"
                     HorizontalAlignment="Center"
@@ -21,6 +21,7 @@
                     FontSize="15"
                     Text="bp分析 by PercyDan"/>
                 </materialDesign:ColorZone>
+                <ProgressBar Name="ProgressBar" IsIndeterminate="True" Width="1024" Visibility="Hidden" VerticalAlignment="Bottom" />
             </DockPanel>
             <Grid Height="50" ScrollViewer.CanContentScroll="True">
                 <Grid.ColumnDefinitions>
@@ -32,7 +33,7 @@
                 </Grid.RowDefinitions>
                 <TextBox Name="UsernameTextbox" TextWrapping="Wrap" Margin="110,15,0,0"/>
                 <Label Content="输入用户名/ID" HorizontalAlignment="Left" Margin="10,15,0,0" VerticalAlignment="Top" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
-                <Button Grid.Column="1" Content="获取bp" HorizontalAlignment="Center" Height="32" Margin="30,15,30,0" VerticalAlignment="Top" Width="195" Click="ButtonBase_OnClick"/>
+                <Button Name="Button" Grid.Column="1" Content="获取bp" HorizontalAlignment="Center" Height="32" Margin="30,15,30,0" VerticalAlignment="Top" Width="195" Click="ButtonBase_OnClick"/>
             </Grid>
             <Grid Height="50" ScrollViewer.CanContentScroll="True">
                 <Grid.ColumnDefinitions>

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Net.Http;
 using Newtonsoft.Json;
 
-namespace OsuTopPlaysGUI.API {
+namespace OsuTopPlaysGUI.API
+{
     public class ApiV2Client
     {
         private static readonly HttpClient client = new HttpClient();
@@ -36,7 +37,8 @@ namespace OsuTopPlaysGUI.API {
 
         public static AccessTokenResponse GetAccessToken()
         {
-            var data = new Dictionary<string, string> {
+            var data = new Dictionary<string, string>
+            {
                 // From https://github.com/ppy/osu/blob/master/osu.Game/Online/ProductionEndpointConfiguration.cs
                 { "client_id", "5" },
                 { "client_secret", "FGc9GAtyHzeQDshWP5Ah7dega8hJACAJpQtw6OXk" },
@@ -47,7 +49,8 @@ namespace OsuTopPlaysGUI.API {
             req.Content = new FormUrlEncodedContent(data);
             var resp = client.Send(req);
 
-            if (resp.IsSuccessStatusCode) {
+            if (resp.IsSuccessStatusCode)
+            {
                 string? str = resp.Content.ReadAsStringAsync().Result;
                 var accessTokenResponse = JsonConvert.DeserializeObject<AccessTokenResponse>(str)!;
                 accessTokenResponse.Time = DateTimeOffset.UtcNow;
@@ -84,7 +87,7 @@ namespace OsuTopPlaysGUI.API {
                 string str = resp.Content.ReadAsStringAsync().Result;
                 return JsonConvert.DeserializeObject<APIUser>(str) ?? new APIUser();
             }
-            return new APIUser();
+            return null;
         }
     }
 }
