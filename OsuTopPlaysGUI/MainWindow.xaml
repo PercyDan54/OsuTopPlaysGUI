@@ -131,7 +131,8 @@
                     <DataGridTextColumn Header="Weighted PP" Binding="{Binding PpWeighted}" />
                     <DataGridTextColumn Header="Rank" Binding="{Binding Score.Rank}" />
                     <DataGridTextColumn Header="Accuracy" Binding="{Binding Accuracy}" />
-                    <DataGridTextColumn Header="Combo" Binding="{Binding MaxCombo}" />
+                    <DataGridTextColumn Header="Max Combo" Binding="{Binding MaxCombo}" />
+                    <DataGridTextColumn Header="Beatmap Max Combo" Binding="{Binding BeatmapMaxCombo}" />
                     <DataGridCheckBoxColumn Header="FC" Binding="{Binding Score.Perfect}"
                                             ElementStyle="{DynamicResource MaterialDesignDataGridCheckBoxColumnStyle}" />
                     <DataGridTextColumn Header="Mods" Binding="{Binding Score.Mods}" />

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using Newtonsoft.Json;
 
 namespace OsuTopPlaysGUI.API
@@ -86,6 +87,30 @@ namespace OsuTopPlaysGUI.API
             {
                 string str = resp.Content.ReadAsStringAsync().Result;
                 return JsonConvert.DeserializeObject<APIUser>(str) ?? new APIUser();
+            }
+            return null;
+        }
+
+        public APIBeatmapDifficultyAttributesResponse.APIBeatmapDifficultyAttributes GetBeatmapAttributes(int beatmap, string mode, string[] mods)
+        {
+            var req = new HttpRequestMessage(HttpMethod.Post, $"https://osu.ppy.sh/api/v2/beatmaps/{beatmap}/attributes");
+
+            req.Headers.Add("Authorization", $"Bearer {accessToken}");
+            req.Headers.Add("Accept", "application/json");
+
+            var data = new Dictionary<string, object>
+            {
+                { "mods", mods },
+                { "ruleset", mode },
+            };
+            req.Content = new StringContent(JsonConvert.SerializeObject(data));
+            req.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            var resp = client.Send(req);
+            if (resp.IsSuccessStatusCode)
+            {
+                string str = resp.Content.ReadAsStringAsync().Result;
+                return JsonConvert.DeserializeObject<APIBeatmapDifficultyAttributesResponse>(str)?.Attributes;
             }
             return null;
         }

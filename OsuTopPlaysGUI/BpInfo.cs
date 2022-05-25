@@ -9,6 +9,7 @@ public class BpInfo
     {
         Position = position;
         Score = score;
+        StarRating = score.Beatmap.StarRating.ToString("F2") + " (NoMod)";
     }
 
     public Score Score { get; init; }
@@ -29,7 +30,9 @@ public class BpInfo
 
     public string MaxCombo => Score.MaxCombo + "x";
 
-    public string StarRating => Score.Beatmap.StarRating.ToString("F2") + "*";
+    public string BeatmapMaxCombo { get; set; } = "Loading...";
+
+    public string StarRating { get; set; }
 
     public string TotalScore => Score.TotalScore.ToString("N0");
 

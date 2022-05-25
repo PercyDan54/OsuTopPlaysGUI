@@ -231,6 +231,18 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
                     Write($"{rank}： {rankCount} ");
                 }
 
+                for (int index = bp.Count - 1; index >= 0; index--)
+                {
+                    var bpInfo = bp[index];
+                    var score = bpInfo.Score;
+                    var attrib = Client.GetBeatmapAttributes(score.Beatmap.OnlineID, mode, score.ModsList);
+                    score.Beatmap.MaxCombo = attrib?.MaxCombo ?? 0;
+                    bpInfo.StarRating = Math.Round(attrib.StarRating, 2).ToString();
+                    score.Beatmap.StarRating = Math.Round(attrib.StarRating, 2);
+                    bpInfo.BeatmapMaxCombo = attrib.MaxCombo + "x";
+                }
+
+                reloadBp();
                 WriteLine($"{NewLine}这周刷了{weekPp:F2}pp");
                 WriteLine($"bp中有 {scores.Count(s => s.Perfect)} 个满combo，{scores.Count(s => s.Statistics["count_miss"] == 1)} 个1miss，{scores.Count(s => s.Statistics["count_100"] == 1 || s.Statistics["count_katu"] == 1)}个 1x100");
                 mapperInfos = mapperInfos.OrderByDescending(v => v.Value.Pp).ToDictionary(v => v.Key, v => v.Value);
@@ -245,11 +257,10 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
                     {
                         bpInfo.MapperName = name;
                     }
-                    BpTable.Dispatcher.BeginInvoke(() => BpTable.ItemsSource = bp);
                     mapperInfo.Name = name;
                 }
 
-                BpTable.Dispatcher.BeginInvoke(() => BpTable.ItemsSource = bp);
+                reloadBp();
                 MapperTable.Dispatcher.BeginInvoke(() => MapperTable.ItemsSource = mapperInfos.Values);
 
                 var mostMapper = mapperInfos.Values.OrderByDescending(v => v.Times).ToArray();
@@ -314,6 +325,13 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
                 }
 
                 Config.WriteJson("config.json", Config);
+
+
+                void reloadBp() => BpTable.Dispatcher.BeginInvoke(() =>
+                {
+                    BpTable.ItemsSource = null;
+                    BpTable.ItemsSource = bp;
+                });
             }
             catch (Exception ex)
             {
