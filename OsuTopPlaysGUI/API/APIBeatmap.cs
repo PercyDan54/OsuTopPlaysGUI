@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace OsuTopPlaysGUI.API
 {
-    public class APIBeatmap
+    public class APIBeatmap : IEquatable<APIBeatmap>, IComparable<APIBeatmap>, IComparable
     {
         [JsonProperty(@"id")] public int OnlineID { get; set; }
 
@@ -54,6 +54,39 @@ namespace OsuTopPlaysGUI.API
         [JsonProperty(@"max_combo")] public int? MaxCombo { get; set; }
 
         public double BPM { get; set; }
+
         public override string ToString() => $"{OnlineBeatmapSetID} {BeatmapSet} [{DifficultyName}]";
+
+        public bool Equals(APIBeatmap? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return OnlineID == other.OnlineID;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((APIBeatmap)obj);
+        }
+
+        public override int GetHashCode() => OnlineID.GetHashCode();
+
+        public int CompareTo(APIBeatmap? other)
+        {
+            if (ReferenceEquals(this, other)) return 0;
+            if (ReferenceEquals(null, other)) return 1;
+            return OnlineID.CompareTo(other.OnlineID);
+        }
+
+        public int CompareTo(object? obj)
+        {
+            if (ReferenceEquals(this, obj)) return 0;
+            if (ReferenceEquals(null, obj)) return 1;
+
+            return CompareTo((APIBeatmap)obj);
+        }
     }
 }

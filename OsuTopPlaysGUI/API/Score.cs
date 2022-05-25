@@ -62,7 +62,7 @@ namespace OsuTopPlaysGUI.API
 
         private string[] mods;
 
-        public string Mods = string.Empty;
+        public string Mods { get; set; } = string.Empty;
 
         [JsonProperty(@"mods")]
         public string[] ModsList

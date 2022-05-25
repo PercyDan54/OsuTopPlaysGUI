@@ -9,11 +9,11 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="bp分析 by PercyDan"
-        Height="768" Width="1024" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+        Height="768" Width="1280" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
     <Grid>
         <StackPanel VerticalAlignment="Top" Height="768">
             <DockPanel Height="50" LastChildFill="False">
-                <materialDesign:ColorZone materialDesign:ShadowAssist.ShadowDepth="Depth2" Mode="PrimaryMid" Width="1024" DockPanel.Dock="Top" Height="45">
+                <materialDesign:ColorZone materialDesign:ShadowAssist.ShadowDepth="Depth2" Mode="PrimaryMid" Width="1280" DockPanel.Dock="Top" Height="45">
                     <TextBlock
                     Name="TitleTextBlock"
                     HorizontalAlignment="Center"
@@ -21,34 +21,30 @@
                     FontSize="15"
                     Text="bp分析 by PercyDan"/>
                 </materialDesign:ColorZone>
-                <ProgressBar Name="ProgressBar" IsIndeterminate="True" Width="1024" Visibility="Hidden" VerticalAlignment="Bottom" />
+                <ProgressBar Name="ProgressBar" IsIndeterminate="True" Width="1280" Visibility="Hidden" VerticalAlignment="Bottom" />
             </DockPanel>
             <Grid Height="50" ScrollViewer.CanContentScroll="True">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="0.6*"/>
                     <ColumnDefinition Width="0.4*"/>
+                    <ColumnDefinition Width="0.4*"/>
+                    <ColumnDefinition Width="0.2*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBox Name="UsernameTextbox" TextWrapping="Wrap" Margin="110,15,0,0"/>
-                <Label Content="输入用户名/ID" HorizontalAlignment="Left" Margin="10,15,0,0" VerticalAlignment="Top" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
-                <Button Name="Button" Grid.Column="1" Content="获取bp" HorizontalAlignment="Center" Height="32" Margin="30,15,30,0" VerticalAlignment="Top" Width="195" Click="ButtonBase_OnClick"/>
-            </Grid>
-            <Grid Height="50" ScrollViewer.CanContentScroll="True">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="0.15*"/>
-                    <ColumnDefinition Width="0.15*"/>
-                    <ColumnDefinition Width="0.15*"/>
-                    <ColumnDefinition Width="0.15*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <RadioButton Name="osu" Content="osu!" IsChecked="True" HorizontalAlignment="Left" Height="30" Margin="15,10,0,0" VerticalAlignment="Center" Width="150"/>
-                <RadioButton  Grid.Column="1" Name="taiko" Content="osu!taiko"  HorizontalAlignment="Left" Height="30" Margin="15,10,0,0" VerticalAlignment="Center" Width="150"/>
-                <RadioButton  Grid.Column="2" Name="fruits" Content="osu!catch"  HorizontalAlignment="Left" Height="30" Margin="15,10,0,0" VerticalAlignment="Center" Width="150"/>
-                <RadioButton  Grid.Column="3" Name="mania" Content="osu!mania"  HorizontalAlignment="Left" Height="30" Margin="15,10,0,0" VerticalAlignment="Center" Width="150"/>
+                <TextBox Name="UsernameTextbox" materialDesign:HintAssist.Hint="输入用户名/ID" TextWrapping="Wrap" Margin="15,15,0,0"/>
+                <ComboBox Name="ModeComboBox"
+                    Grid.Column="1"
+                    Width="200"
+                    materialDesign:HintAssist.Hint="Mode"
+                    Margin="0,15,0,0">
+                    <ComboBoxItem Content="Default mode" />
+                    <ComboBoxItem Content="osu!" />
+                    <ComboBoxItem Content="osu!taiko" />
+                    <ComboBoxItem Content="osu!catch" />
+                    <ComboBoxItem Content="osu!mania" />
+                </ComboBox>
+                <Button Name="Button" Grid.Column="2" Content="获取bp" HorizontalAlignment="Center" Height="32" Margin="30,15,30,0" VerticalAlignment="Top" Width="195" Click="ButtonBase_OnClick"/>
             </Grid>
             <Grid Height="200">
                 <Grid.ColumnDefinitions>
@@ -58,25 +54,29 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Image Name="UserAvatar" Height="150" Width="150" HorizontalAlignment="Left" Margin="15, 15, 15, 0"></Image>
-                <TextBox TextWrapping="NoWrap" Name="UserInfoTextBox" Text="" IsReadOnly="True" Width="280" Margin="175,10,0,0" HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Left"/>
-                <TextBox Grid.Column="1" Name="BpTextBox" Height="180" TextWrapping="NoWrap" Text="" IsReadOnly="True" Width="500" Margin="0, 15, 15, 0" HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Right"/>
+                <Image Name="UserAvatar" Height="150" Width="150" HorizontalAlignment="Left" Margin="15, 0, 15, 0"></Image>
+                <TextBox TextWrapping="NoWrap" Name="UserInfoTextBox" IsReadOnly="True" Width="480" Margin="175,0,0,0" HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Left"/>
+                <TextBox Grid.Column="1" Name="BpTextBox" Height="180" TextWrapping="Wrap" Text="" IsReadOnly="True" Width="640" Margin="0, 15, 15, 0" HorizontalScrollBarVisibility="Auto" HorizontalAlignment="Center"/>
             </Grid>
             <DataGrid Height="380" Name="Table" IsReadOnly="True" AutoGenerateColumns="False" HorizontalScrollBarVisibility="Visible" RowStyle="{DynamicResource MaterialDesignDataGridRow}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Position" Binding="{Binding Position}"/>
                     <DataGridTextColumn Header="PP" Binding="{Binding Pp}"/>
                     <DataGridTextColumn Header="Weighted PP" Binding="{Binding PpWeighted}"/>
-                    <DataGridTextColumn Header="Rank" Binding="{Binding Rank}"/>
+                    <DataGridTextColumn Header="Rank" Binding="{Binding Score.Rank}"/>
                     <DataGridTextColumn Header="Accuracy" Binding="{Binding Accuracy}"/>
                     <DataGridTextColumn Header="Max Combo" Binding="{Binding MaxCombo}"/>
-                    <DataGridCheckBoxColumn Header="FC" Binding="{Binding Perfect}" ElementStyle="{DynamicResource MaterialDesignDataGridCheckBoxColumnStyle}"/>
-                    <DataGridTextColumn Header="Mods" Binding="{Binding Mods}"/>
+                    <DataGridCheckBoxColumn Header="FC" Binding="{Binding Score.Perfect}" ElementStyle="{DynamicResource MaterialDesignDataGridCheckBoxColumnStyle}"/>
+                    <DataGridTextColumn Header="Mods" Binding="{Binding Score.Mods}"/>
+                    <DataGridTextColumn Header="100" Binding="{Binding Count100}"/>
+                    <DataGridTextColumn Header="50" Binding="{Binding Count50}"/>
+                    <DataGridTextColumn Header="Miss" Binding="{Binding CountMiss}"/>
                     <DataGridTextColumn Header="Star Rating" Binding="{Binding StarRating}"/>
                     <DataGridTextColumn Header="BPM" Binding="{Binding Bpm}"/>
                     <DataGridTextColumn Header="Length" Binding="{Binding Length}"/>
-                    <DataGridTextColumn Header="Beatmap" Binding="{Binding Beatmap}"/>
-                    <DataGridCheckBoxColumn Header="Replay Available" Binding="{Binding HasReplay}" ElementStyle="{DynamicResource MaterialDesignDataGridCheckBoxColumnStyle}"/>
+                    <DataGridTextColumn Header="Score" Binding="{Binding TotalScore}"/>
+                    <DataGridTextColumn Header="Beatmap" Binding="{Binding Score.Beatmap}"/>
+                    <DataGridCheckBoxColumn Header="Replay Available" Binding="{Binding Score.HasReplay}" ElementStyle="{DynamicResource MaterialDesignDataGridCheckBoxColumnStyle}"/>
                 </DataGrid.Columns>
             </DataGrid>
         </StackPanel>

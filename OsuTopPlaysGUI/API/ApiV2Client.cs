@@ -61,7 +61,7 @@ namespace OsuTopPlaysGUI.API
 
         public Score[] GetUserBestScores(int userId, string mode)
         {
-            var req = new HttpRequestMessage(HttpMethod.Get, $"https://osu.ppy.sh/api/v2/users/{userId}/scores/best?limit=100&mode={mode}");
+            var req = new HttpRequestMessage(HttpMethod.Get, $"https://osu.ppy.sh/api/v2/users/{userId}/scores/best?limit=100{(string.IsNullOrEmpty(mode) ? mode : $"&mode={mode}") }");
             req.Headers.Add("Authorization", $"Bearer {accessToken}");
             req.Headers.Add("Accept", "application/json");
 
@@ -74,9 +74,9 @@ namespace OsuTopPlaysGUI.API
             return null;
         }
 
-        public APIUser GetUser(string user)
+        public APIUser GetUser(string user, string mode = default)
         {
-            var req = new HttpRequestMessage(HttpMethod.Get, $"https://osu.ppy.sh/api/v2/users/{user}");
+            var req = new HttpRequestMessage(HttpMethod.Get, $"https://osu.ppy.sh/api/v2/users/{user}/{mode}");
 
             req.Headers.Add("Authorization", $"Bearer {accessToken}");
             req.Headers.Add("Accept", "application/json");

@@ -8,44 +8,32 @@ public class BpInfo
     public BpInfo(Score score, int position)
     {
         Position = position;
-        this.score = score;
+        Score = score;
     }
 
-    private Score score;
+    public Score Score { get; init; }
 
     public int Position { get; set; }
 
-    public double Pp => score.PP ?? 0;
+    public double Pp => Score.PP ?? 0;
 
-    public double PpWeighted => Math.Round(score.Weight?.PP ?? 0, 2);
+    public double PpWeighted => Math.Round(Score.Weight?.PP ?? 0, 2);
 
-    public double Bpm => Math.Round(score.Beatmap.BPM, 2);
+    public double Bpm => Math.Round(Score.Beatmap.BPM, 2);
 
-    public string Length => TimeSpan.FromSeconds(score.Beatmap.Length).ToString("hh\\:mm\\:ss");
+    public string Length => TimeSpan.FromSeconds(Score.Beatmap.Length).ToString("hh\\:mm\\:ss");
 
-    public string Accuracy => score.Accuracy.ToString("P2");
+    public string Accuracy => Score.Accuracy.ToString("P2");
 
-    public string MaxCombo => score.MaxCombo + "x";
+    public string MaxCombo => Score.MaxCombo + "x";
 
-    public string Mods => score.Mods;
+    public string StarRating => Score.Beatmap.StarRating.ToString("F2") + "*";
 
-    public bool Perfect
-    {
-        get => score.Perfect;
-        set => throw new InvalidOperationException();
-    }
+    public string TotalScore => Score.TotalScore.ToString("N0");
 
-    public bool HasReplay
-    {
-        get => score.HasReplay;
-        set => throw new InvalidOperationException();
-    }
+    public int CountMiss => Score.Statistics["count_miss"];
 
-    public string Beatmap => score.Beatmap.ToString();
+    public int Count50 => Score.Statistics["count_50"];
 
-    public string StarRating => score.Beatmap.StarRating.ToString("F2") + "*";
-
-    public string Rank => score.Rank.ToString();
-
-    public string Detail => score.ToString();
+    public int Count100 => Score.Statistics["count_100"];
 }

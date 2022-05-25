@@ -25,16 +25,15 @@ namespace OsuTopPlaysGUI
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
             ProgressBar.Visibility = Visibility.Visible;
-            string mode = "osu";
 
-            if (osu.IsChecked == true)
-                mode = "osu";
-            else if (taiko.IsChecked == true)
-                mode = "taiko";
-            else if (fruits.IsChecked == true)
-                mode = "fruits";
-            else if (mania.IsChecked == true)
-                mode = "mania";
+            string mode = ModeComboBox.SelectedIndex switch
+            {
+                1 => "osu",
+                2 => "taiko",
+                3 => "fruits",
+                4 => "mania",
+                _ => string.Empty
+            };
 
             string user = UsernameTextbox.Text;
             BpTextBox.Text = string.Empty;
@@ -46,8 +45,10 @@ namespace OsuTopPlaysGUI
         {
             try
             {
-                var user = Client.GetUser(username);
-                user.PlayMode = mode;
+                var user = Client.GetUser(username, mode);
+
+                if (!string.IsNullOrEmpty(mode))
+                    user.PlayMode = mode;
 
                 TitleTextBlock.Dispatcher.BeginInvoke(() => TitleTextBlock.Text = user.ToString());
                 var scores = Client.GetUserBestScores(user.Id, mode);
@@ -85,10 +86,10 @@ namespace OsuTopPlaysGUI
                 int sotarks = 0;
                 var rankCounts = Enum.GetValues(typeof(ScoreRank)).Cast<ScoreRank>().ToDictionary(rank => rank, rank => 0);
 
-                if (scores == null)
-                    return;
+                int count = scores?.Length ?? 0;
 
-                var count = scores.Length;
+                if (scores == null || count < 1)
+                    return;
 
                 for (int i = 0; i < count; i++)
                 {
@@ -164,14 +165,15 @@ namespace OsuTopPlaysGUI
                         modCombinationPp.TryAdd(score.Mods, 0);
                         modCombinationPp[score.Mods] += scorePpWeighted;
 
-                        foreach (string mod in scoreModsList)
+                        foreach (string mod in score.ModsList)
                         {
-                            mostUsedMods.TryAdd(mod, 0);
-                            mostUsedMods[mod]++;
-
                             string mod1 = mod.Replace("PF", string.Empty).Replace("SD", string.Empty);
                             if (mod1 == string.Empty)
                                 mod1 = "None";
+
+                            mostUsedMods.TryAdd(mod, 0);
+                            mostUsedMods[mod]++;
+
                             modPp.TryAdd(mod1, 0);
                             modPp[mod1] += scorePpWeighted;
                         }
@@ -195,25 +197,34 @@ namespace OsuTopPlaysGUI
                 UserAvatar.Dispatcher.BeginInvoke(() => UserAvatar.Source = new BitmapImage(new Uri(user.AvatarUrl)));
                 Table.Dispatcher.BeginInvoke(() => Table.ItemsSource = bp);
 
-                var userStatistics = user.Statistics;
-                var playTime = TimeSpan.FromSeconds(userStatistics.PlayTime ?? 0);
+                var stats = user.Statistics;
+                var playTime = TimeSpan.FromSeconds(stats.PlayTime ?? 0);
                 string playTimeText = $"{playTime.TotalDays:N0}d {playTime.Hours}h {playTime.Minutes}m";
+                int prevNameCount = user.PreviousUsernames.Length;
+                string previousUsernames = prevNameCount > 0 ? "曾用名: " : string.Empty;
+                for (int i = 0; i < prevNameCount; i++)
+                {
+                    previousUsernames += user.PreviousUsernames[i] + (i == prevNameCount - 1 ? NewLine : ", ");
+                }
+
                 UserInfoTextBox.Dispatcher.BeginInvoke(() => UserInfoTextBox.Text = $@"{user}
-游戏时间: {playTimeText}
-准确率: {userStatistics.Accuracy:F2}%
-Ranked 谱面总分: {userStatistics.RankedScore:N0}
-总分: {userStatistics.TotalScore:N0}
-游戏次数: {userStatistics.PlayCount:N0}
-tth: {userStatistics.TotalHits:N0}
-pc/tth: {userStatistics.TotalHits / (double)userStatistics.PlayCount:F2}
-最大连击: {userStatistics.MaxCombo:N0}
-回放被观看次数: {userStatistics.ReplaysWatched}");
+
+{previousUsernames}游戏时间: {playTimeText}
+准确率: {stats.Accuracy:F2}%
+Ranked 谱面总分: {stats.RankedScore:N0}
+总分: {stats.TotalScore:N0}
+游戏次数: {stats.PlayCount:N0}
+tth: {stats.TotalHits:N0}
+pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
+最大连击: {stats.MaxCombo:N0}
+回放被观看次数: {stats.ReplaysWatched}");
+
+                rankCounts = rankCounts.Where(v => v.Value > 0).OrderByDescending(v => v.Value).ToDictionary(p => p.Key, p => p.Value);
 
                 foreach (var rank in rankCounts.Keys)
                 {
                     int rankCount = rankCounts[rank];
-                    if (rankCount > 0)
-                        Write($"{rank}： {rankCount} ");
+                    Write($"{rank}： {rankCount} ");
                 }
 
                 WriteLine($"{NewLine}你这周刷了{weekPp:F2}pp");
@@ -223,10 +234,11 @@ pc/tth: {userStatistics.TotalHits / (double)userStatistics.PlayCount:F2}
                 var mostPpMapper = mapperPp.OrderByDescending(v => v.Value).ToArray();
                 string mostMappers = string.Empty;
                 string mostPpMappers = string.Empty;
-                for (int i = 0; i < Math.Min(5, mostMapper.Length); i++)
+                int mapper = Math.Min(5, mostMapper.Length) - 1;
+                for (int i = 0; i <= mapper; i++)
                 {
-                    mostMappers += $"{lookupUser(mostMapper[i].Key)}（{mostMapper[i].Value}次）{(i == 4 ? NewLine : "，")}";
-                    mostPpMappers += $"{lookupUser(mostPpMapper[i].Key)}（{mostPpMapper[i].Value:F}pp）{(i == 4 ? "。" : "，")}";
+                    mostMappers += $"{lookupUser(mostMapper[i].Key)}（{mostMapper[i].Value}次）{(i == mapper ? NewLine : "，")}";
+                    mostPpMappers += $"{lookupUser(mostPpMapper[i].Key)}（{mostPpMapper[i].Value:F}pp）{(i == mapper ? "。" : "，")}";
                 }
                 mostPpMappers += $"快说，谢谢{lookupUser(mostPpMapper[0].Key)}";
 
@@ -276,7 +288,7 @@ pc/tth: {userStatistics.TotalHits / (double)userStatistics.PlayCount:F2}
                     Write($"{mod}: {pp1:F}pp ({pp1 / ppSum:P}) ");
                 }
 
-                Write($"{NewLine}pp最多的mod组合（算权重）：");
+                Write($"{NewLine}{NewLine}pp最多的mod组合（算权重）：");
                 foreach (string mod in modCombinationPp.Keys)
                 {
                     double pp1 = modCombinationPp[mod];
@@ -305,7 +317,7 @@ pc/tth: {userStatistics.TotalHits / (double)userStatistics.PlayCount:F2}
             if (Config.UsernameCache.TryGetValue(userId, out string name))
                 return name;
 
-            Config.UsernameCache.Add(userId, name = Client.GetUser(userId.ToString())?.Username ?? "{Unknown User}");
+            Config.UsernameCache.Add(userId, name = Client.GetUser(userId.ToString())?.Username ?? $"{{Unknown User}} (ID: {userId})");
             return name;
         }
     }
