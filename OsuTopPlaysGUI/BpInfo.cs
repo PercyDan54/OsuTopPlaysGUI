@@ -13,13 +13,15 @@ public class BpInfo
 
     public Score Score { get; init; }
 
-    public int Position { get; set; }
+    public int Position { get; init; }
 
     public double Pp => Score.PP ?? 0;
 
     public double PpWeighted => Math.Round(Score.Weight?.PP ?? 0, 2);
 
     public double Bpm => Math.Round(Score.Beatmap.BPM, 2);
+
+    public string MapperName { get; set; }
 
     public string Length => TimeSpan.FromSeconds(Score.Beatmap.Length).ToString("hh\\:mm\\:ss");
 

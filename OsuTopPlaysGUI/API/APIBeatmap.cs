@@ -36,14 +36,8 @@ namespace OsuTopPlaysGUI.API
 
         [JsonProperty(@"accuracy")] public float OverallDifficulty { get; set; }
 
-        [JsonIgnore] public double Length { get; set; }
-
         [JsonProperty(@"total_length")]
-        private double lengthInSeconds
-        {
-            get => TimeSpan.FromMilliseconds(Length).TotalSeconds;
-            set => Length = value;
-        }
+        public double Length { get; set; }
 
         [JsonProperty(@"count_circles")] public int CircleCount { get; set; }
 
@@ -55,7 +49,7 @@ namespace OsuTopPlaysGUI.API
 
         public double BPM { get; set; }
 
-        public override string ToString() => $"{OnlineBeatmapSetID} {BeatmapSet} [{DifficultyName}]";
+        public override string ToString() => $"{BeatmapSet} [{DifficultyName}] (BID: {OnlineID})";
 
         public bool Equals(APIBeatmap? other)
         {
