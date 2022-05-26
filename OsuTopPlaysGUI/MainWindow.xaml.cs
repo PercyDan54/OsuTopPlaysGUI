@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using OsuTopPlaysGUI.API;
 using static System.Environment;
+using static OsuTopPlaysGUI.API.APIBeatmapDifficultyAttributesResponse;
 
 namespace OsuTopPlaysGUI
 {
@@ -151,18 +152,12 @@ namespace OsuTopPlaysGUI
 
                     rankCounts[score.Rank]++;
 
-                    string scoreMods = "";
-                    foreach (string s in score.ModsList.TakeWhile(v => v != "PF" && v != "SD").ToArray())
-                    {
-                        scoreMods += s;
-                    }
-
-                    if (score.ModsList.Length > 0)
+                    if (score.ScoringMods.Length > 0)
                     {
                         modCombinationPp.TryAdd(score.Mods, new ModPpInfo { Mod = score.Mods });
-                        modCombinationPp.TryAdd(scoreMods, new ModPpInfo { Mod = scoreMods });
+                        modCombinationPp.TryAdd(score.ScoringModsString, new ModPpInfo { Mod = score.ScoringModsString });
                         modCombinationPp[score.Mods].Times++;
-                        modCombinationPp[scoreMods].Pp += scorePpWeighted;
+                        modCombinationPp[score.ScoringModsString].Pp += scorePpWeighted;
 
                         foreach (string mod in score.ModsList)
                         {
@@ -231,13 +226,12 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
                     Write($"{rank}： {rankCount} ");
                 }
 
-                for (int index = bp.Count - 1; index >= 0; index--)
+                foreach (var bpInfo in bp)
                 {
-                    var bpInfo = bp[index];
                     var score = bpInfo.Score;
-                    var attrib = Client.GetBeatmapAttributes(score.Beatmap.OnlineID, mode, score.ModsList);
+                    var attrib = getDifficulty(score, mode);
                     score.Beatmap.MaxCombo = attrib?.MaxCombo ?? 0;
-                    bpInfo.StarRating = Math.Round(attrib.StarRating, 2).ToString();
+                    bpInfo.StarRating = Math.Round(attrib?.StarRating ?? 0, 2).ToString();
                     score.Beatmap.StarRating = Math.Round(attrib.StarRating, 2);
                     bpInfo.BeatmapMaxCombo = attrib.MaxCombo + "x";
                 }
@@ -324,8 +318,7 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
                     Write($"{mod.Mod}: {pp1:F}pp ({pp1 / ppSum:P}) ");
                 }
 
-                Config.WriteJson("config.json", Config);
-
+                Config.WriteCompressed(ApiV2Client.COMPRESSED_CONFIG_NAME, Config);
 
                 void reloadBp() => BpTable.Dispatcher.BeginInvoke(() =>
                 {
@@ -355,6 +348,43 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
 
             Config.UsernameCache.Add(userId, name = Client.GetUser(userId.ToString())?.Username ?? $"{{Unknown User}} (ID: {userId})");
             return name;
+        }
+
+        private static APIBeatmapDifficultyAttributes getDifficulty(Score score, string mode)
+        {
+            string scoreMods = score.ScoringModsString;
+
+            APIBeatmapDifficultyAttributes attrib;
+
+            // Data format: [ID][mode][mod]
+            if (Config.DifficultyCache.TryGetValue(score.Beatmap.OnlineID, out var a))
+            {
+                if (a.TryGetValue(mode, out var b))
+                {
+                    if (b.TryGetValue(scoreMods, out var c))
+                    {
+                        return c;
+                    }
+
+                    // We have data for the same beatmap in the same ruleset but not for this mod combination
+                    attrib = Client.GetBeatmapAttributes(score.Beatmap.OnlineID, mode, score.ScoringMods);
+                    b.Add(scoreMods, attrib);
+                    return attrib;
+                }
+
+                // We have data for the same beatmap but not for this ruleset
+                attrib = Client.GetBeatmapAttributes(score.Beatmap.OnlineID, mode, score.ScoringMods);
+                a.Add(mode, new Dictionary<string, APIBeatmapDifficultyAttributes> { { scoreMods, attrib } });
+                return attrib;
+            }
+
+            // No data for this beatmap was found
+            attrib = Client.GetBeatmapAttributes(score.Beatmap.OnlineID, mode, score.ScoringMods);
+            Config.DifficultyCache.Add(score.Beatmap.OnlineID, new Dictionary<string, Dictionary<string, APIBeatmapDifficultyAttributes>>
+            {
+                { mode, new Dictionary<string, APIBeatmapDifficultyAttributes> { { scoreMods, attrib } } }
+            });
+            return attrib;
         }
 
         public class PpInfo
