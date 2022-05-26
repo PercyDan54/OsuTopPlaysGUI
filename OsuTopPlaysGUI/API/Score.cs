@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -64,16 +65,17 @@ namespace OsuTopPlaysGUI.API
 
         public string Mods { get; set; } = string.Empty;
 
+        public string[] ScoringMods => mods.TakeWhile(v => v != "PF" && v != "SD").ToArray();
+
+        public string ScoringModsString => ToModsString(ScoringMods);
+
         [JsonProperty(@"mods")]
         public string[] ModsList
         {
             set
             {
                 mods = value;
-                foreach (string s in value)
-                {
-                    Mods += s;
-                }
+                Mods = ToModsString(value);
             }
             get => mods;
         }
@@ -104,6 +106,18 @@ namespace OsuTopPlaysGUI.API
                 str += " FC";
             }
             return str;
+        }
+
+        public static string ToModsString(string[] list)
+        {
+            string mods = string.Empty;
+
+            foreach (string s in list)
+            {
+                mods += s;
+            }
+
+            return mods;
         }
     }
 

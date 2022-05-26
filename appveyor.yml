@@ -12,7 +12,8 @@ dotnet_csproj:
 build_script:
 - cmd: >-
     dotnet build ./OsuTopPlaysGUI/OsuTopPlaysGUI.csproj -c Release
-    ren .\OsuTopPlaysGUI\bin\Debug\net6.0-windows OsuTopPlaysGUI
+
+    ren .\OsuTopPlaysGUI\bin\Release\net6.0-windows OsuTopPlaysGUI
 test: off
 artifacts:
 - path: ./OsuTopPlaysGUI/bin/Release/
