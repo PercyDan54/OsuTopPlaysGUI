@@ -191,8 +191,19 @@ namespace OsuTopPlaysGUI
                 UserAvatar.Dispatcher.BeginInvoke(() => UserAvatar.Source = new BitmapImage(new Uri(user.AvatarUrl)));
                 BpTable.Dispatcher.BeginInvoke(() => BpTable.ItemsSource = bp);
 
-                modPp = modPp.Where(v => v.Value.Times > 0).OrderByDescending(v => v.Value.Pp).ToDictionary(p => p.Key, p => p.Value);
-                modCombinationPp = modCombinationPp.Where(v => v.Value.Times > 0).OrderByDescending(v => v.Value.Pp).ToDictionary(p => p.Key, p => p.Value);
+                double weightedPpSum = scores.Sum(s => s.Weight?.PP ?? 0);
+                modPp = modPp.Where(v => v.Value.Times > 0).OrderByDescending(v => v.Value.Pp).ToDictionary(p => p.Key, kvp =>
+                {
+                    var mod = kvp.Value;
+                    mod.Percentage = mod.Pp / weightedPpSum;
+                    return mod;
+                });
+                modCombinationPp = modCombinationPp.Where(v => v.Value.Times > 0).OrderByDescending(v => v.Value.Pp).ToDictionary(p => p.Key, kvp =>
+                {
+                    var mod = kvp.Value;
+                    mod.Percentage = mod.Pp / weightedPpSum;
+                    return mod;
+                });
                 ModTable.Dispatcher.BeginInvoke(() => ModTable.ItemsSource = modPp.Values);
                 ModCombinationTable.Dispatcher.BeginInvoke(() => ModCombinationTable.ItemsSource = modCombinationPp.Values);
 
@@ -209,7 +220,9 @@ namespace OsuTopPlaysGUI
                 UserInfoTextBox.Dispatcher.BeginInvoke(() => UserInfoTextBox.Text = $@"{user}
 
 {previousUsernames}游戏时间: {playTimeText}
+Bonus pp（可能不准）: {(double)stats.PP - weightedPpSum:F2}pp
 准确率: {stats.Accuracy:F2}%
+bp平均准确率: {scores.Average(s => s.Accuracy):P2}
 Ranked 谱面总分: {stats.RankedScore:N0}
 总分: {stats.TotalScore:N0}
 游戏次数: {stats.PlayCount:N0}
@@ -304,18 +317,17 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
                 WriteLine(NewLine);
                 Write("pp最多的mod（算权重）：");
 
-                ppSum = scores.Sum(s => s.Weight?.PP ?? 0);
                 foreach (var mod in modPp.Values)
                 {
                     double pp1 = mod.Pp;
-                    Write($"{mod.Mod}: {pp1:F}pp ({pp1 / ppSum:P}) ");
+                    Write($"{mod.Mod}: {pp1:F}pp ({mod.Percentage:P2}) ");
                 }
 
                 Write($"{NewLine}{NewLine}pp最多的mod组合（算权重）：");
                 foreach (var mod in modCombinationPp.Values)
                 {
                     double pp1 = mod.Pp;
-                    Write($"{mod.Mod}: {pp1:F}pp ({pp1 / ppSum:P}) ");
+                    Write($"{mod.Mod}: {pp1:F}pp ({mod.Percentage:P2}) ");
                 }
 
                 Config.WriteCompressed(ApiV2Client.COMPRESSED_CONFIG_NAME, Config);
@@ -392,13 +404,13 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
             public int Times { get; set; }
 
             public double Pp { get; set; }
-
-            public double PpRounded => Math.Round(Pp, 2);
         }
 
         public class ModPpInfo : PpInfo
         {
             public string Mod { get; set; }
+
+            public double Percentage { get; set; }
         }
 
         public class MapperPpInfo : PpInfo

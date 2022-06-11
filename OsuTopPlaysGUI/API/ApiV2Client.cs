@@ -114,8 +114,7 @@ namespace OsuTopPlaysGUI.API
             return null;
         }
 
-        public APIBeatmapDifficultyAttributesResponse.APIBeatmapDifficultyAttributes GetBeatmapAttributes(int beatmap,
-            string mode, string[] mods)
+        public APIBeatmapDifficultyAttributesResponse.APIBeatmapDifficultyAttributes GetBeatmapAttributes(int beatmap, string mode, string[] mods)
         {
             var req = new HttpRequestMessage(HttpMethod.Post,
                 $"https://osu.ppy.sh/api/v2/beatmaps/{beatmap}/attributes");

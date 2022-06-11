@@ -64,7 +64,7 @@
                          d:DesignWidth="640" Margin="0, 15, 0, 0" VerticalScrollBarVisibility="Auto"
                          HorizontalAlignment="Center" />
             </Grid>
-            <materialDesign:Card>
+            <materialDesign:Card Margin="0,15,0,0">
                 <StackPanel>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -81,7 +81,7 @@
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
                                     <DataGridTextColumn Header="ID" Binding="{Binding Id}" />
-                                    <DataGridTextColumn Header="PP" Binding="{Binding PpRounded}" />
+                                    <DataGridTextColumn Header="PP" Binding="{Binding Pp, StringFormat='F2'}" />
                                     <DataGridTextColumn Header="Times" Binding="{Binding Times}" />
                                 </DataGrid.Columns>
                             </DataGrid>
@@ -97,7 +97,8 @@
                                                   RowStyle="{DynamicResource MaterialDesignDataGridRow}">
                                             <DataGrid.Columns>
                                                 <DataGridTextColumn Header="Mod" Binding="{Binding Mod}" />
-                                                <DataGridTextColumn Header="PP" Binding="{Binding PpRounded}" />
+                                                <DataGridTextColumn Header="PP" Binding="{Binding Pp, StringFormat='F2'}" />
+                                                <DataGridTextColumn Header="PP Percentage" Binding="{Binding Percentage, StringFormat='P2'}" />
                                                 <DataGridTextColumn Header="Times" Binding="{Binding Times}" />
                                             </DataGrid.Columns>
                                         </DataGrid>
@@ -109,7 +110,8 @@
                                                   RowStyle="{DynamicResource MaterialDesignDataGridRow}">
                                             <DataGrid.Columns>
                                                 <DataGridTextColumn Header="Mod" Binding="{Binding Mod}" />
-                                                <DataGridTextColumn Header="PP" Binding="{Binding PpRounded}" />
+                                                <DataGridTextColumn Header="PP" Binding="{Binding Pp, StringFormat='F2'}" />
+                                                <DataGridTextColumn Header="PP Percentage" Binding="{Binding Percentage, StringFormat='P2'}" />
                                                 <DataGridTextColumn Header="Times" Binding="{Binding Times}" />
                                             </DataGrid.Columns>
                                         </DataGrid>
@@ -130,8 +132,8 @@
                     <DataGridTextColumn Header="PP" Binding="{Binding Pp}" />
                     <DataGridTextColumn Header="Weighted PP" Binding="{Binding PpWeighted}" />
                     <DataGridTextColumn Header="Rank" Binding="{Binding Score.Rank}" />
-                    <DataGridTextColumn Header="Accuracy" Binding="{Binding Accuracy}" />
-                    <DataGridTextColumn Header="Max Combo" Binding="{Binding MaxCombo}" />
+                    <DataGridTextColumn Header="Accuracy" Binding="{Binding Score.Accuracy, StringFormat='P2'}" />
+                    <DataGridTextColumn Header="Max Combo" Binding="{Binding Score.MaxCombo, StringFormat=\{0:N0\}x}" />
                     <DataGridTextColumn Header="Beatmap Max Combo" Binding="{Binding BeatmapMaxCombo}" />
                     <DataGridCheckBoxColumn Header="FC" Binding="{Binding Score.Perfect}"
                                             ElementStyle="{DynamicResource MaterialDesignDataGridCheckBoxColumnStyle}" />
@@ -142,7 +144,7 @@
                     <DataGridTextColumn Header="Star Rating" Binding="{Binding StarRating}" />
                     <DataGridTextColumn Header="BPM" Binding="{Binding Bpm}" />
                     <DataGridTextColumn Header="Length" Binding="{Binding Length}" />
-                    <DataGridTextColumn Header="Score" Binding="{Binding TotalScore}" />
+                    <DataGridTextColumn Header="Score" Binding="{Binding Score.TotalScore, StringFormat='N0'}" />
                     <DataGridTextColumn Header="Mapper" Binding="{Binding MapperName}" />
                     <DataGridTextColumn Header="Beatmap" Binding="{Binding Score.Beatmap}" />
                     <DataGridCheckBoxColumn Header="Replay Available" Binding="{Binding Score.HasReplay}"

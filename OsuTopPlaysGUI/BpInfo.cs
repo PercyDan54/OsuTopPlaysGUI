@@ -28,13 +28,9 @@ public class BpInfo
 
     public string Accuracy => Score.Accuracy.ToString("P2");
 
-    public string MaxCombo => Score.MaxCombo + "x";
-
     public string BeatmapMaxCombo { get; set; } = "Loading...";
 
     public string StarRating { get; set; }
-
-    public string TotalScore => Score.TotalScore.ToString("N0");
 
     public int CountMiss => Score.Statistics["count_miss"];
 
