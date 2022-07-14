@@ -12,7 +12,7 @@ namespace OsuTopPlaysGUI.API
 
         public Dictionary<int, string> UsernameCache = new Dictionary<int, string>();
 
-        public Dictionary<int, Dictionary<string, Dictionary<string, APIBeatmapDifficultyAttributesResponse.APIBeatmapDifficultyAttributes>>> DifficultyCache = new ();
+        public Dictionary<int, Dictionary<string, Dictionary<string, APIBeatmapDifficultyAttributes>>> DifficultyCache = new ();
 
         public static T ReadJson<T>(string file) => JsonConvert.DeserializeObject<T>(File.ReadAllText(file));
 

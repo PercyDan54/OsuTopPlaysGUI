@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using Microsoft.Win32;
 using OsuTopPlaysGUI.API;
 using static System.Environment;
-using static OsuTopPlaysGUI.API.APIBeatmapDifficultyAttributesResponse;
 
 namespace OsuTopPlaysGUI
 {
@@ -17,6 +20,7 @@ namespace OsuTopPlaysGUI
     {
         public static ApiV2Client Client = new ApiV2Client();
         public static Config Config;
+        private bool loaded;
 
         public MainWindow()
         {
@@ -88,6 +92,7 @@ namespace OsuTopPlaysGUI
                 if (scores == null || count < 1)
                     return;
 
+                loaded = false;
                 for (int i = 0; i < count; i++)
                 {
                     var score = scores[i];
@@ -95,8 +100,8 @@ namespace OsuTopPlaysGUI
                     int mapperId = score.Beatmap.AuthorID;
 
                     if (mapperId == 4452992 ||
-                        beatmapDifficultyName.Contains("Sotarks's", StringComparison.InvariantCultureIgnoreCase) ||
-                        beatmapDifficultyName.Contains("Sotarks'", StringComparison.InvariantCultureIgnoreCase))
+                        beatmapDifficultyName.Contains("Sotarks's", StringComparison.OrdinalIgnoreCase) ||
+                        beatmapDifficultyName.Contains("Sotarks'", StringComparison.OrdinalIgnoreCase))
                         sotarks++;
 
                     double scorePp = score.PP ?? 0;
@@ -122,8 +127,24 @@ namespace OsuTopPlaysGUI
 
                     score.Beatmap.Length = length;
                     score.Beatmap.BPM = bpm;
-
                     beatmapLengths.Add(length);
+
+                    if (score.Mods.Contains("HR"))
+                    {
+                        score.Beatmap.CircleSize = Math.Min(score.Beatmap.CircleSize * 1.3f, 10);
+                        score.Beatmap.ApproachRate = Math.Min(score.Beatmap.ApproachRate * 1.4f, 10);
+                        score.Beatmap.OverallDifficulty = Math.Min(score.Beatmap.OverallDifficulty * 1.4f, 10);
+                        score.Beatmap.DrainRate = Math.Min(score.Beatmap.DrainRate * 1.4f, 10);
+
+                    }
+                    if (score.Mods.Contains("EZ"))
+                    {
+                        score.Beatmap.CircleSize /= 2;
+                        score.Beatmap.ApproachRate /= 2;
+                        score.Beatmap.OverallDifficulty /= 2;
+                        score.Beatmap.DrainRate /= 2;
+                    }
+
                     int num = i + 1;
                     if (length > longestMap.Item2)
                         longestMap = (num, length);
@@ -331,6 +352,7 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
                 }
 
                 Config.WriteCompressed(ApiV2Client.COMPRESSED_CONFIG_NAME, Config);
+                loaded = true;
 
                 void reloadBp() => BpTable.Dispatcher.BeginInvoke(() =>
                 {
@@ -347,6 +369,29 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
                 ProgressBar.Dispatcher.BeginInvoke(() => ProgressBar.Visibility = Visibility.Hidden);
                 Button.Dispatcher.BeginInvoke(() => Button.IsEnabled = true);
             }
+        }
+
+        private void saveDataGridViewToCSV(object sender, RoutedEventArgs routedEventArgs)
+        {
+            if (!loaded)
+                return;
+
+            BpTable.Dispatcher.BeginInvoke(() =>
+            {
+                BpTable.ClipboardCopyMode = DataGridClipboardCopyMode.IncludeHeader;
+                BpTable.SelectAllCells();
+                ApplicationCommands.Copy.Execute(null, BpTable);
+                string csv = (string)Clipboard.GetData(DataFormats.CommaSeparatedValue);
+                BpTable.UnselectAllCells();
+                var dialog = new SaveFileDialog
+                {
+                    FileName = "bp.csv",
+                    DefaultExt = "csv",
+                    AddExtension = true
+                };
+                dialog.ShowDialog();
+                File.WriteAllText(dialog.FileName, csv);
+            });
         }
 
         private void Write(string str) => BpTextBox.Dispatcher.BeginInvoke(() => BpTextBox.Text += str);
@@ -380,22 +425,28 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
 
                     // We have data for the same beatmap in the same ruleset but not for this mod combination
                     attrib = Client.GetBeatmapAttributes(score.Beatmap.OnlineID, mode, score.ScoringMods);
-                    b.Add(scoreMods, attrib);
+                    if (attrib != null)
+                        b.Add(scoreMods, attrib);
                     return attrib;
                 }
 
                 // We have data for the same beatmap but not for this ruleset
                 attrib = Client.GetBeatmapAttributes(score.Beatmap.OnlineID, mode, score.ScoringMods);
-                a.Add(mode, new Dictionary<string, APIBeatmapDifficultyAttributes> { { scoreMods, attrib } });
+                if (attrib != null)
+                    a.Add(mode, new Dictionary<string, APIBeatmapDifficultyAttributes> { { scoreMods, attrib } });
                 return attrib;
             }
 
             // No data for this beatmap was found
             attrib = Client.GetBeatmapAttributes(score.Beatmap.OnlineID, mode, score.ScoringMods);
-            Config.DifficultyCache.Add(score.Beatmap.OnlineID, new Dictionary<string, Dictionary<string, APIBeatmapDifficultyAttributes>>
+            if (attrib != null)
             {
-                { mode, new Dictionary<string, APIBeatmapDifficultyAttributes> { { scoreMods, attrib } } }
-            });
+                Config.DifficultyCache.Add(score.Beatmap.OnlineID, new Dictionary<string, Dictionary<string, APIBeatmapDifficultyAttributes>>
+                {
+                    { mode, new Dictionary<string, APIBeatmapDifficultyAttributes> { { scoreMods, attrib } } }
+                });
+            }
+
             return attrib;
         }
 

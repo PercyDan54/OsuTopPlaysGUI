@@ -128,29 +128,36 @@
                       RowStyle="{DynamicResource MaterialDesignDataGridRow}"
                       ScrollViewer.PanningMode="Both">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Position" Binding="{Binding Position}" />
+                    <DataGridTextColumn Header="No." Binding="{Binding Position}" />
+                    <DataGridTextColumn Header="Beatmap" Binding="{Binding Score.Beatmap}" />
+                    <DataGridTextColumn Header="Mapper" Binding="{Binding MapperName}" />
                     <DataGridTextColumn Header="PP" Binding="{Binding Pp}" />
                     <DataGridTextColumn Header="Weighted PP" Binding="{Binding PpWeighted}" />
-                    <DataGridTextColumn Header="Rank" Binding="{Binding Score.Rank}" />
+                    <DataGridTextColumn Header="Mods" Binding="{Binding Score.Mods}" />
                     <DataGridTextColumn Header="Accuracy" Binding="{Binding Score.Accuracy, StringFormat='P2'}" />
                     <DataGridTextColumn Header="Max Combo" Binding="{Binding Score.MaxCombo, StringFormat=\{0:N0\}x}" />
                     <DataGridTextColumn Header="Beatmap Max Combo" Binding="{Binding BeatmapMaxCombo}" />
+                    <DataGridTextColumn Header="Rank" Binding="{Binding Score.Rank}" />
                     <DataGridCheckBoxColumn Header="FC" Binding="{Binding Score.Perfect}"
                                             ElementStyle="{DynamicResource MaterialDesignDataGridCheckBoxColumnStyle}" />
-                    <DataGridTextColumn Header="Mods" Binding="{Binding Score.Mods}" />
+                    <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
                     <DataGridTextColumn Header="100" Binding="{Binding Count100}" />
                     <DataGridTextColumn Header="50" Binding="{Binding Count50}" />
                     <DataGridTextColumn Header="Miss" Binding="{Binding CountMiss}" />
                     <DataGridTextColumn Header="Star Rating" Binding="{Binding StarRating}" />
+                    <DataGridTextColumn Header="CS" Binding="{Binding Score.Beatmap.CircleSize}" />
+                    <DataGridTextColumn Header="AR" Binding="{Binding Score.Beatmap.ApproachRate}" />
+                    <DataGridTextColumn Header="OD" Binding="{Binding Score.Beatmap.OverallDifficulty}" />
+                    <DataGridTextColumn Header="HP" Binding="{Binding Score.Beatmap.DrainRate}" />
                     <DataGridTextColumn Header="BPM" Binding="{Binding Bpm}" />
                     <DataGridTextColumn Header="Length" Binding="{Binding Length}" />
                     <DataGridTextColumn Header="Score" Binding="{Binding Score.TotalScore, StringFormat='N0'}" />
-                    <DataGridTextColumn Header="Mapper" Binding="{Binding MapperName}" />
-                    <DataGridTextColumn Header="Beatmap" Binding="{Binding Score.Beatmap}" />
                     <DataGridCheckBoxColumn Header="Replay Available" Binding="{Binding Score.HasReplay}"
                                             ElementStyle="{DynamicResource MaterialDesignDataGridCheckBoxColumnStyle}" />
                 </DataGrid.Columns>
             </DataGrid>
+            <Button Content="导出bp" Margin="235, 5" Click="saveDataGridViewToCSV">
+            </Button>
         </StackPanel>
     </ScrollViewer>
 </Window>

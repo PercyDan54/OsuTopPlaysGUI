@@ -7,8 +7,8 @@ clone_depth: 1
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
-  version: 1.0.1
-  file_version: 1.0.1
+  version: 1.0.2
+  file_version: 1.0.2
 build_script:
 - cmd: >-
     dotnet build ./OsuTopPlaysGUI/OsuTopPlaysGUI.csproj -c Release
@@ -20,7 +20,7 @@ artifacts:
   name: OsuTopPlaysGUI
 deploy:
 - provider: GitHub
-  tag: 1.0.1
+  tag: 1.0.2
   auth_token:
     secure: EEbZ2OGaIPcjhGpQGzfE80TbrG14UiTPGNnQjMIKD5wzrYPQ4Kyhb3qLzMNahL1I
   repository: PercyDan54/OsuTopPlaysGUI

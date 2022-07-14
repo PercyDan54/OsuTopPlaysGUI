@@ -37,4 +37,6 @@ public class BpInfo
     public int Count50 => Score.Statistics["count_50"];
 
     public int Count100 => Score.Statistics["count_100"];
+
+    public DateTime Date => Score.Date.LocalDateTime;
 }

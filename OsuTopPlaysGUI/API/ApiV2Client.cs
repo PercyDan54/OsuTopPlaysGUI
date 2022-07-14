@@ -72,7 +72,7 @@ namespace OsuTopPlaysGUI.API
             if (resp.IsSuccessStatusCode)
             {
                 string? str = resp.Content.ReadAsStringAsync().Result;
-                var accessTokenResponse = JsonConvert.DeserializeObject<AccessTokenResponse>(str)!;
+                var accessTokenResponse = JsonConvert.DeserializeObject<AccessTokenResponse>(str);
                 accessTokenResponse.Time = DateTimeOffset.UtcNow;
                 return accessTokenResponse;
             }
@@ -82,8 +82,7 @@ namespace OsuTopPlaysGUI.API
 
         public Score[] GetUserBestScores(int userId, string mode)
         {
-            var req = new HttpRequestMessage(HttpMethod.Get,
-                $"https://osu.ppy.sh/api/v2/users/{userId}/scores/best?limit=100{(string.IsNullOrEmpty(mode) ? mode : $"&mode={mode}")}");
+            var req = new HttpRequestMessage(HttpMethod.Get, $"https://osu.ppy.sh/api/v2/users/{userId}/scores/best?limit=100{(string.IsNullOrEmpty(mode) ? mode : $"&mode={mode}")}");
             req.Headers.Add("Authorization", $"Bearer {accessToken}");
             req.Headers.Add("Accept", "application/json");
 
@@ -114,10 +113,9 @@ namespace OsuTopPlaysGUI.API
             return null;
         }
 
-        public APIBeatmapDifficultyAttributesResponse.APIBeatmapDifficultyAttributes GetBeatmapAttributes(int beatmap, string mode, string[] mods)
+        public APIBeatmapDifficultyAttributes GetBeatmapAttributes(int beatmap, string mode, string[] mods)
         {
-            var req = new HttpRequestMessage(HttpMethod.Post,
-                $"https://osu.ppy.sh/api/v2/beatmaps/{beatmap}/attributes");
+            var req = new HttpRequestMessage(HttpMethod.Post, $"https://osu.ppy.sh/api/v2/beatmaps/{beatmap}/attributes");
 
             req.Headers.Add("Authorization", $"Bearer {accessToken}");
             req.Headers.Add("Accept", "application/json");

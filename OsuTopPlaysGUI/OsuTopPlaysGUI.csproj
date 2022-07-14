@@ -6,6 +6,7 @@
     <UseWPF>true</UseWPF>
     <StartupObject></StartupObject>
     <ApplicationIcon>oof.ico</ApplicationIcon>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
