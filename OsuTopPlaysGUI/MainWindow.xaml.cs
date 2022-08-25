@@ -21,10 +21,15 @@ namespace OsuTopPlaysGUI
         public static ApiV2Client Client = new ApiV2Client();
         public static Config Config;
         private bool loaded;
+        private static Dictionary<string, MapDifficultyRange> approachRateRanges = new();
+        private static Dictionary<string, MapDifficultyRange> overallDifficultyRanges = new();
 
         public MainWindow()
         {
             InitializeComponent();
+            approachRateRanges.Add("osu", new MapDifficultyRange(1800, 1200, 450));
+            overallDifficultyRanges.Add("osu", new MapDifficultyRange(80, 50, 20));
+            overallDifficultyRanges.Add("taiko", new MapDifficultyRange(50, 35, 20));
         }
 
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
@@ -111,39 +116,12 @@ namespace OsuTopPlaysGUI
                     mapperInfos[mapperId].Times++;
                     mapperInfos[mapperId].Pp += scorePpWeighted;
 
+                    applyModsTo(score, mode);
+
                     double length = score.Beatmap.Length;
                     double bpm = score.Beatmap.BPM;
-                    if (score.Mods.Contains("DT") || score.Mods.Contains("NC"))
-                    {
-                        length /= 1.5;
-                        bpm *= 1.5;
-                    }
 
-                    if (score.Mods.Contains("HT"))
-                    {
-                        length /= 0.75;
-                        bpm *= 0.75;
-                    }
-
-                    score.Beatmap.Length = length;
-                    score.Beatmap.BPM = bpm;
                     beatmapLengths.Add(length);
-
-                    if (score.Mods.Contains("HR"))
-                    {
-                        score.Beatmap.CircleSize = Math.Min(score.Beatmap.CircleSize * 1.3f, 10);
-                        score.Beatmap.ApproachRate = Math.Min(score.Beatmap.ApproachRate * 1.4f, 10);
-                        score.Beatmap.OverallDifficulty = Math.Min(score.Beatmap.OverallDifficulty * 1.4f, 10);
-                        score.Beatmap.DrainRate = Math.Min(score.Beatmap.DrainRate * 1.4f, 10);
-
-                    }
-                    if (score.Mods.Contains("EZ"))
-                    {
-                        score.Beatmap.CircleSize /= 2;
-                        score.Beatmap.ApproachRate /= 2;
-                        score.Beatmap.OverallDifficulty /= 2;
-                        score.Beatmap.DrainRate /= 2;
-                    }
 
                     int num = i + 1;
                     if (length > longestMap.Item2)
@@ -369,6 +347,62 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
                 ProgressBar.Dispatcher.BeginInvoke(() => ProgressBar.Visibility = Visibility.Hidden);
                 Button.Dispatcher.BeginInvoke(() => Button.IsEnabled = true);
             }
+        }
+
+        private static void applyModsTo(Score score, string mode)
+        {
+            var beatmap = score.Beatmap;
+
+            if (score.Mods.Contains("HR"))
+            {
+                beatmap.CircleSize = Math.Min(beatmap.CircleSize * 1.3f, 10);
+                beatmap.ApproachRate = Math.Min(beatmap.ApproachRate * 1.4f, 10);
+                beatmap.OverallDifficulty = Math.Min(beatmap.OverallDifficulty * 1.4f, 10);
+                beatmap.DrainRate = Math.Min(beatmap.DrainRate * 1.4f, 10);
+            }
+
+            if (score.Mods.Contains("EZ"))
+            {
+                beatmap.CircleSize /= 2;
+                beatmap.ApproachRate /= 2;
+                beatmap.OverallDifficulty /= 2;
+                beatmap.DrainRate /= 2;
+            }
+
+            MapDifficultyRange difficultyRange;
+
+            if (score.Mods.Contains("DT") || score.Mods.Contains("NC"))
+            {
+                beatmap.Length /= 1.5;
+                beatmap.BPM *= 1.5;
+
+                if (approachRateRanges.TryGetValue(mode, out difficultyRange))
+                {
+                    beatmap.ApproachRate = MathF.Round(difficultyRange.DifficultyFor((int)difficultyRange.ValueFor(beatmap.ApproachRate) / 1.5f), 2);
+                }
+
+                if (overallDifficultyRanges.TryGetValue(mode, out difficultyRange))
+                {
+                    beatmap.OverallDifficulty = MathF.Round(difficultyRange.DifficultyFor((int)difficultyRange.ValueFor(beatmap.OverallDifficulty) / 1.5f), 2);
+                }
+            }
+
+            if (score.Mods.Contains("HT"))
+            {
+                beatmap.Length /= 0.75;
+                beatmap.BPM *= 0.75;
+
+                if (approachRateRanges.TryGetValue(mode, out difficultyRange))
+                {
+                    beatmap.ApproachRate = MathF.Round(difficultyRange.DifficultyFor((int)difficultyRange.ValueFor(beatmap.ApproachRate) / 0.75f), 2);
+                }
+
+                if (overallDifficultyRanges.TryGetValue(mode, out difficultyRange))
+                {
+                    beatmap.OverallDifficulty = MathF.Round(difficultyRange.DifficultyFor((int)difficultyRange.ValueFor(beatmap.OverallDifficulty) / 0.75f), 2);
+                }
+            }
+
         }
 
         private void saveDataGridViewToCSV(object sender, RoutedEventArgs routedEventArgs)

@@ -71,10 +71,13 @@ namespace OsuTopPlaysGUI.API
 
             if (resp.IsSuccessStatusCode)
             {
-                string? str = resp.Content.ReadAsStringAsync().Result;
+                string str = resp.Content.ReadAsStringAsync().Result;
                 var accessTokenResponse = JsonConvert.DeserializeObject<AccessTokenResponse>(str);
-                accessTokenResponse.Time = DateTimeOffset.UtcNow;
-                return accessTokenResponse;
+                if (accessTokenResponse != null)
+                {
+                    accessTokenResponse.Time = DateTimeOffset.UtcNow;
+                    return accessTokenResponse;
+                }
             }
 
             return null;
