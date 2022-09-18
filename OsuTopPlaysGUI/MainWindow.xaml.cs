@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -18,18 +20,24 @@ namespace OsuTopPlaysGUI
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static ApiV2Client Client = new ApiV2Client();
+        public static ApiV2Client Client;
         public static Config Config;
         private bool loaded;
-        private static Dictionary<string, MapDifficultyRange> approachRateRanges = new();
-        private static Dictionary<string, MapDifficultyRange> overallDifficultyRanges = new();
+        private static readonly Dictionary<string, MapDifficultyRange> approachRateRanges = new()
+        {
+            { "osu", new MapDifficultyRange(1800, 1200, 450) }
+        };
+        private static readonly Dictionary<string, MapDifficultyRange> overallDifficultyRanges = new()
+        {
+            { "osu", new MapDifficultyRange(80, 50, 20) },
+            { "taiko", new MapDifficultyRange(50, 35, 20) }
+        };
 
         public MainWindow()
         {
             InitializeComponent();
-            approachRateRanges.Add("osu", new MapDifficultyRange(1800, 1200, 450));
-            overallDifficultyRanges.Add("osu", new MapDifficultyRange(80, 50, 20));
-            overallDifficultyRanges.Add("taiko", new MapDifficultyRange(50, 35, 20));
+            Client = new ApiV2Client();
+            Button.IsEnabled = true;
         }
 
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
@@ -76,6 +84,7 @@ namespace OsuTopPlaysGUI
                 {
                     { "None", new ModPpInfo { Mod = "None" } }
                 };
+                var mapInfos = new Dictionary<int, MapperPpInfo>();
                 var mapperInfos = new Dictionary<int, MapperPpInfo>();
                 var highestPpSpeed = (0, -1.0);
                 var highestPpSpeedWeighted = (0, -1.0);
@@ -104,19 +113,23 @@ namespace OsuTopPlaysGUI
                     string beatmapDifficultyName = score.Beatmap.DifficultyName;
                     int mapperId = score.Beatmap.AuthorID;
 
-                    if (mapperId == 4452992 ||
-                        beatmapDifficultyName.Contains("Sotarks's", StringComparison.OrdinalIgnoreCase) ||
-                        beatmapDifficultyName.Contains("Sotarks'", StringComparison.OrdinalIgnoreCase))
+                    if (mapperId == 4452992)
                         sotarks++;
 
                     double scorePp = score.PP ?? 0;
                     double scorePpWeighted = score.Weight?.PP ?? 0;
                     pp.Add(scorePp);
+
                     mapperInfos.TryAdd(mapperId, new MapperPpInfo { Id = mapperId });
                     mapperInfos[mapperId].Times++;
                     mapperInfos[mapperId].Pp += scorePpWeighted;
 
-                    applyModsTo(score, mode);
+                    int mapId = score.Beatmap.OnlineBeatmapSetID;
+                    mapInfos.TryAdd(mapId, new MapperPpInfo { Id = mapId, Name = score.Beatmap.BeatmapSet?.Title});
+                    mapInfos[mapId].Times++;
+                    mapInfos[mapId].Pp += scorePpWeighted;
+
+                    applyModsToScore(score, mode);
 
                     double length = score.Beatmap.Length;
                     double bpm = score.Beatmap.BPM;
@@ -207,7 +220,7 @@ namespace OsuTopPlaysGUI
                 ModCombinationTable.Dispatcher.BeginInvoke(() => ModCombinationTable.ItemsSource = modCombinationPp.Values);
 
                 var stats = user.Statistics;
-                var playTime = TimeSpan.FromSeconds(stats.PlayTime ?? 0);
+                var playTime = TimeSpan.FromSeconds(stats.PlayTime.GetValueOrDefault());
                 string playTimeText = $"{playTime.Days:N0}d {playTime.Hours}h {playTime.Minutes}m";
                 int prevNameCount = user.PreviousUsernames.Length;
                 string previousUsernames = prevNameCount > 0 ? "曾用名: " : string.Empty;
@@ -225,10 +238,11 @@ bp平均准确率: {scores.Average(s => s.Accuracy):P2}
 Ranked 谱面总分: {stats.RankedScore:N0}
 总分: {stats.TotalScore:N0}
 游戏次数: {stats.PlayCount:N0}
-tth: {stats.TotalHits:N0}
-pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
+总命中次数: {stats.TotalHits:N0}
 最大连击: {stats.MaxCombo:N0}
-回放被观看次数: {stats.ReplaysWatched}");
+回放被观看次数: {stats.ReplaysWatched}
+pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
+平均每pc时长: {TimeSpan.FromSeconds(playTime.TotalSeconds / stats.PlayCount):hh\:mm\:ss}");
 
                 rankCounts = rankCounts.Where(v => v.Value > 0).OrderByDescending(v => v.Value).ToDictionary(p => p.Key, p => p.Value);
 
@@ -237,6 +251,14 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
                     int rankCount = rankCounts[rank];
                     Write($"{rank}： {rankCount} ");
                 }
+
+                mapInfos = mapInfos.OrderByDescending(v => v.Value.Pp).ToDictionary(v => v.Key, v =>
+                {
+                    var mapInfo = v.Value;
+                    mapInfo.Percentage = mapInfo.Pp / weightedPpSum;
+                    return mapInfo;
+                });
+                MapTable.Dispatcher.BeginInvoke(() => MapTable.ItemsSource = mapInfos.Values);
 
                 foreach (var bpInfo in bp)
                 {
@@ -251,19 +273,20 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
                 reloadBp();
                 WriteLine($"{NewLine}这周刷了{weekPp:F2}pp");
                 WriteLine($"bp中有 {scores.Count(s => s.Perfect)} 个满combo，{scores.Count(s => s.Statistics["count_miss"] == 1)} 个1miss，{scores.Count(s => s.Statistics["count_100"] == 1 || s.Statistics["count_katu"] == 1)}个 1x100");
-                mapperInfos = mapperInfos.OrderByDescending(v => v.Value.Pp).ToDictionary(v => v.Key, v => v.Value);
 
+                mapperInfos = mapperInfos.OrderByDescending(v => v.Value.Pp).ToDictionary(v => v.Key, v => v.Value);
                 string mostMappers = string.Empty;
                 string mostPpMappers = string.Empty;
                 foreach (var mapperInfo in mapperInfos.Values)
                 {
                     int userId = mapperInfo.Id;
                     string name = getUsername(userId);
-                    foreach (var bpInfo in bp.Where(bp => bp.Score.Beatmap.AuthorID == userId))
+                    foreach (var bpInfo in bp.Where(bpInfo => bpInfo.Score.Beatmap.AuthorID == userId))
                     {
                         bpInfo.MapperName = name;
                     }
                     mapperInfo.Name = name;
+                    mapperInfo.Percentage = mapperInfo.Pp / weightedPpSum;
                 }
 
                 reloadBp();
@@ -349,7 +372,7 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
             }
         }
 
-        private static void applyModsTo(Score score, string mode)
+        private static void applyModsToScore(Score score, string mode)
         {
             var beatmap = score.Beatmap;
 
@@ -405,7 +428,7 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
 
         }
 
-        private void saveDataGridViewToCSV(object sender, RoutedEventArgs routedEventArgs)
+        private void exportBpToCsv(object sender, RoutedEventArgs routedEventArgs)
         {
             if (!loaded)
                 return;
@@ -415,22 +438,50 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
                 BpTable.ClipboardCopyMode = DataGridClipboardCopyMode.IncludeHeader;
                 BpTable.SelectAllCells();
                 ApplicationCommands.Copy.Execute(null, BpTable);
-                string csv = (string)Clipboard.GetData(DataFormats.CommaSeparatedValue);
+                string csv = (string) Clipboard.GetData(DataFormats.CommaSeparatedValue);
                 BpTable.UnselectAllCells();
                 var dialog = new SaveFileDialog
                 {
                     FileName = "bp.csv",
-                    DefaultExt = "csv",
+                    Filter = "CSV file|*.csv",
                     AddExtension = true
                 };
-                dialog.ShowDialog();
-                File.WriteAllText(dialog.FileName, csv);
+                if (dialog.ShowDialog() == true)
+                    File.WriteAllText(dialog.FileName, csv);
             });
+        }
+
+        private void downloadBp(object sender, RoutedEventArgs e)
+        {
+            Task.Factory.StartNew(() =>
+            {
+                foreach (var obj in BpTable.ItemsSource)
+                {
+                    var bp = (BpInfo)obj;
+                    openUrl($"https://dl.sayobot.cn/beatmaps/download/full/{bp.Score.Beatmap.OnlineBeatmapSetID}");
+                    Thread.Sleep(3000);
+                }
+            }, TaskCreationOptions.LongRunning);
         }
 
         private void Write(string str) => BpTextBox.Dispatcher.BeginInvoke(() => BpTextBox.Text += str);
         private void WriteLine(string str) => Write(str + NewLine);
         private void WriteLine() => WriteLine(string.Empty);
+
+        private void openUrl(string url)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true,
+                });
+            }
+            catch
+            {
+            }
+        }
 
         private static string getUsername(int userId)
         {
@@ -482,27 +533,6 @@ pc/tth: {stats.TotalHits / (double)stats.PlayCount:F2}
             }
 
             return attrib;
-        }
-
-        public class PpInfo
-        {
-            public int Times { get; set; }
-
-            public double Pp { get; set; }
-        }
-
-        public class ModPpInfo : PpInfo
-        {
-            public string Mod { get; set; }
-
-            public double Percentage { get; set; }
-        }
-
-        public class MapperPpInfo : PpInfo
-        {
-            public int Id { get; set; }
-
-            public string Name { get; set; }
         }
     }
 }

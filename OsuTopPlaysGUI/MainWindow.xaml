@@ -47,7 +47,7 @@
                     <ComboBoxItem Content="osu!mania" />
                 </ComboBox>
                 <Button Name="Button" Grid.Column="2" Content="获取bp" HorizontalAlignment="Center" Height="35"
-                        Margin="30,15,30,0" VerticalAlignment="Top" d:DesignWidth="195" Click="ButtonBase_OnClick" />
+                        Margin="30,15,30,0" VerticalAlignment="Top" d:DesignWidth="195" Click="ButtonBase_OnClick" IsEnabled="False" />
             </Grid>
             <Grid Height="200">
                 <Grid.ColumnDefinitions>
@@ -74,22 +74,39 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <Expander HorizontalAlignment="Stretch" Header="Mapper info">
-                            <DataGrid Height="320" Name="MapperTable" IsReadOnly="True" AutoGenerateColumns="False"
-                                      HorizontalScrollBarVisibility="Visible" Margin="0,15,0,0"
-                                      RowStyle="{DynamicResource MaterialDesignDataGridRow}">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
-                                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" />
-                                    <DataGridTextColumn Header="PP" Binding="{Binding Pp, StringFormat='F2'}" />
-                                    <DataGridTextColumn Header="Times" Binding="{Binding Times}" />
-                                </DataGrid.Columns>
-                            </DataGrid>
+                        <Expander HorizontalAlignment="Stretch" Header="Map statistics">
+                            <TabControl>
+                                <TabItem Header="Map">
+                                    <DataGrid Height="320" Name="MapTable" IsReadOnly="True" AutoGenerateColumns="False"
+                                              HorizontalScrollBarVisibility="Visible" Margin="0,15,0,0"
+                                              RowStyle="{DynamicResource MaterialDesignDataGridRow}">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Title" Binding="{Binding Name}" />
+                                            <DataGridTextColumn Header="SID" Binding="{Binding Id}" />
+                                            <DataGridTextColumn Header="PP" Binding="{Binding Pp, StringFormat='F2'}" />
+                                            <DataGridTextColumn Header="PP Percentage" Binding="{Binding Percentage, StringFormat='P2'}" />
+                                            <DataGridTextColumn Header="Times" Binding="{Binding Times}" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </TabItem>
+                                <TabItem Header="Mapper">
+                                    <DataGrid Height="320" Name="MapperTable" IsReadOnly="True" AutoGenerateColumns="False"
+                                              HorizontalScrollBarVisibility="Visible" Margin="0,15,0,0"
+                                              RowStyle="{DynamicResource MaterialDesignDataGridRow}">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                                            <DataGridTextColumn Header="ID" Binding="{Binding Id}" />
+                                            <DataGridTextColumn Header="PP" Binding="{Binding Pp, StringFormat='F2'}" />
+                                            <DataGridTextColumn Header="PP Percentage" Binding="{Binding Percentage, StringFormat='P2'}" />
+                                            <DataGridTextColumn Header="Times" Binding="{Binding Times}" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </TabItem>
+                            </TabControl>
                         </Expander>
-                        <Expander Grid.Column="1" Header="Most used mods">
+                        <Expander Grid.Column="1" Header="Mod statistics">
                             <materialDesign:Card>
-                                <TabControl
-                                    materialDesign:ColorZoneAssist.Mode="PrimaryMid">
+                                <TabControl>
                                     <TabItem Header="Mods">
                                         <DataGrid Height="320" Name="ModTable" IsReadOnly="True"
                                                   AutoGenerateColumns="False"
@@ -130,6 +147,7 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="No." Binding="{Binding Position}" />
                     <DataGridTextColumn Header="Beatmap" Binding="{Binding Score.Beatmap}" />
+                    <DataGridTextColumn Header="Beatmap ID" Binding="{Binding Score.Beatmap.OnlineID}" />
                     <DataGridTextColumn Header="Mapper" Binding="{Binding MapperName}" />
                     <DataGridTextColumn Header="PP" Binding="{Binding Pp}" />
                     <DataGridTextColumn Header="Weighted PP" Binding="{Binding PpWeighted}" />
@@ -145,10 +163,10 @@
                     <DataGridTextColumn Header="50" Binding="{Binding Count50}" />
                     <DataGridTextColumn Header="Miss" Binding="{Binding CountMiss}" />
                     <DataGridTextColumn Header="Star Rating" Binding="{Binding StarRating}" />
-                    <DataGridTextColumn Header="CS" Binding="{Binding Score.Beatmap.CircleSize}" />
-                    <DataGridTextColumn Header="AR" Binding="{Binding Score.Beatmap.ApproachRate}" />
-                    <DataGridTextColumn Header="OD" Binding="{Binding Score.Beatmap.OverallDifficulty}" />
-                    <DataGridTextColumn Header="HP" Binding="{Binding Score.Beatmap.DrainRate}" />
+                    <DataGridTextColumn Header="CS" Binding="{Binding Score.Beatmap.CircleSize, StringFormat='#.##'}" />
+                    <DataGridTextColumn Header="AR" Binding="{Binding Score.Beatmap.ApproachRate, StringFormat='#.##'}" />
+                    <DataGridTextColumn Header="OD" Binding="{Binding Score.Beatmap.OverallDifficulty, StringFormat='#.##'}" />
+                    <DataGridTextColumn Header="HP" Binding="{Binding Score.Beatmap.DrainRate, StringFormat='#.##'}" />
                     <DataGridTextColumn Header="BPM" Binding="{Binding Bpm}" />
                     <DataGridTextColumn Header="Length" Binding="{Binding Length}" />
                     <DataGridTextColumn Header="Score" Binding="{Binding Score.TotalScore, StringFormat='N0'}" />
@@ -156,8 +174,8 @@
                                             ElementStyle="{DynamicResource MaterialDesignDataGridCheckBoxColumnStyle}" />
                 </DataGrid.Columns>
             </DataGrid>
-            <Button Content="导出bp" Margin="235, 5" Click="saveDataGridViewToCSV">
-            </Button>
+            <Button Content="导出bp" Margin="235, 5" Click="exportBpToCsv"></Button>
+            <Button Content="下载bp" Margin="235, 5" Click="downloadBp"></Button>
         </StackPanel>
     </ScrollViewer>
 </Window>

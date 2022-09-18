@@ -49,7 +49,7 @@ namespace OsuTopPlaysGUI.API
 
         public double BPM { get; set; }
 
-        public override string ToString() => $"{BeatmapSet} [{DifficultyName}] (BID: {OnlineID})";
+        public override string ToString() => $"{BeatmapSet} [{DifficultyName}]";
 
         public bool Equals(APIBeatmap? other)
         {
